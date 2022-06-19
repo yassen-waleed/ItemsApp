@@ -1,8 +1,7 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from Items.models import Item, ItemType
+from Items.models import Item
 from .ItemSerializer import ItemSerializer
 
 
@@ -18,14 +17,15 @@ def all_items(request):
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-# @api_view(['GET'])
-# class ItemViewSet(viewsets.ModelViewSet):
-#     serializer_class = ItemSerializer
-#
-#     def get_queryset(self):
-#         items = Item.objects.all()
-#         return items
-#
+
+class ItemViewSet(viewsets.ModelViewSet):
+    serializer_class = ItemSerializer
+
+    def get_queryset(self):
+        items = Item.objects.all()
+        return items
+
+
 #     def create(self, request, *args, **kwargs):
 #         data = request.data
 #
@@ -59,10 +59,4 @@ def all_items(request):
 #         return Response(serializer.data)
 
 
-class ItemViewSet(viewsets.ModelViewSet):
-    serializer_class = ItemSerializer
-
-    def get_queryset(self):
-        items = Item.objects.all()
-        return items
 
