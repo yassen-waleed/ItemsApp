@@ -6,6 +6,19 @@ from .ItemSerializer import ItemSerializer, TypeSerializer
 
 
 @api_view(['GET'])
+def all_item_has_type(request):
+    type_ids = request.query_params.get('id', None).split(',')
+    items = Item.objects.filter(types__in=type_ids)
+    serializer = ItemSerializer(items, many=True)
+
+    # if there is something in items else raise error
+    if items:
+        return Response(serializer.data)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
 def all_type(request):
     types = ItemType.objects.values('type_name').distinct()
     serializer = TypeSerializer(types, many=True)

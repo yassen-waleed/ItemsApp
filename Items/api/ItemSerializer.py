@@ -18,7 +18,8 @@ class Availability_date_Serializer(serializers.ModelSerializer):
 class TypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ItemType
-        fields = ['type_name']
+        fields = ['id', 'type_name']
+
 
 class AmenitiesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,10 +27,9 @@ class AmenitiesSerializer(serializers.ModelSerializer):
         fields = ['amenities_name']
 
 
-
 class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
-        fields = ['name', 'address', 'location', 'phone', 'link', 'about', 'price',
+        fields = ['id', 'name', 'address', 'location', 'phone', 'link', 'about', 'price',
                   'vendor_id', 'reserved', 'rate', 'types', 'images', 'amenities', 'availability_date']
         depth = 1
