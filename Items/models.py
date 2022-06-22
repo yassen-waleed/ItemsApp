@@ -39,6 +39,7 @@ class Item(models.Model):
     vendor_id = models.CharField(max_length=10, blank=False)
     reserved = models.BooleanField(default=False)
     rate = models.TextField(max_length=10)
+    size = models.IntegerField(max_length=10,default=100)
     types = models.ManyToManyField(ItemType)
     images = models.ManyToManyField(images)
     amenities = models.ManyToManyField(Amenities)

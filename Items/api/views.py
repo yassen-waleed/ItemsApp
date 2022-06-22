@@ -1,8 +1,43 @@
+from django.db.models import Q
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from Items.models import Item, ItemType
 from .ItemSerializer import ItemSerializer, TypeSerializer
+
+
+@api_view(['GET'])
+def all_item_capisty(request):
+    type = request.GET.getlist('type')
+    location = request.GET.getlist('location')
+    size = request.GET.get('size')
+    print(type)
+    print(location)
+
+    items = Item.objects.all().filter(location__in=location, types__in=type, size__gte=size).distinct().order_by(
+        '-size')
+    serializer = ItemSerializer(items, many=True)
+
+    if items:
+        return Response(serializer.data)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+def all_item_Most_rated(request):
+    type = request.GET.getlist('type')
+    location = request.GET.getlist('location')
+    print(type)
+    print(location)
+
+    items = Item.objects.all().filter(location__in=location, types__in=type).distinct().order_by('-rate')
+    serializer = ItemSerializer(items, many=True)
+
+    if items:
+        return Response(serializer.data)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])

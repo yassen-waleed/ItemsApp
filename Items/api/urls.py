@@ -13,6 +13,8 @@ urlpatterns = [
     path('customerItems', views.all_item_by_location_and_type, name='view-types'),
     path('item', views.all_item_by_name, name='view-types'),
     path('price/acs', views.all_item_by_price_ASC, name='view-types'),
-    path('price/desc', views.all_item_by_price_DESC, name='view-types')
+    path('price/desc', views.all_item_by_price_DESC, name='view-types'),
+    path('mostRated', views.all_item_Most_rated, name='view-types'),
+    path('capicty', views.all_item_capisty, name='view-types')
 
 ]
