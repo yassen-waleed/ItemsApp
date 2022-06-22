@@ -8,7 +8,24 @@ from .ItemSerializer import ItemSerializer, TypeSerializer
 @api_view(['GET'])
 def all_item_has_type(request):
     type_ids = request.query_params.get('id', None).split(',')
-    items = Item.objects.filter(types__in=type_ids)
+    items = Item.objects.all().filter(types__in=type_ids).distinct()
+    serializer = ItemSerializer(items, many=True)
+
+    # if there is something in items else raise error
+    if items:
+        return Response(serializer.data)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+def all_item_by_location_and_type(request):
+    type = request.GET.getlist('type')
+    location = request.GET.getlist('location')
+    print(type)
+    print(location)
+
+    items = Item.objects.all().filter(location__in=location,types__in=type).distinct()
     serializer = ItemSerializer(items, many=True)
 
     # if there is something in items else raise error
