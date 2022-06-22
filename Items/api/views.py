@@ -6,6 +6,37 @@ from .ItemSerializer import ItemSerializer, TypeSerializer
 
 
 @api_view(['GET'])
+def all_item_by_price_DESC(request):
+    type = request.GET.getlist('type')
+    location = request.GET.getlist('location')
+    print(type)
+    print(location)
+
+    items = Item.objects.all().filter(location__in=location, types__in=type).distinct().order_by('-price')
+    serializer = ItemSerializer(items, many=True)
+
+    if items:
+        return Response(serializer.data)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+def all_item_by_price_ASC(request):
+    type = request.GET.getlist('type')
+    location = request.GET.getlist('location')
+    print(type)
+    print(location)
+    items = Item.objects.all().filter(location__in=location, types__in=type).distinct().order_by('price')
+    serializer = ItemSerializer(items, many=True)
+
+    if items:
+        return Response(serializer.data)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
 def all_item_has_type(request):
     type_ids = request.query_params.get('id', None).split(',')
     items = Item.objects.all().filter(types__in=type_ids).distinct()
@@ -17,10 +48,10 @@ def all_item_has_type(request):
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+
 @api_view(['GET'])
 def all_item_by_name(request):
     name = request.GET.get('name')
-
     items = Item.objects.all().filter(name=name).distinct()
     serializer = ItemSerializer(items, many=True)
 
@@ -38,7 +69,7 @@ def all_item_by_location_and_type(request):
     print(type)
     print(location)
 
-    items = Item.objects.all().filter(location__in=location,types__in=type).distinct()
+    items = Item.objects.all().filter(location__in=location, types__in=type).distinct()
     serializer = ItemSerializer(items, many=True)
 
     # if there is something in items else raise error
@@ -50,7 +81,7 @@ def all_item_by_location_and_type(request):
 
 @api_view(['GET'])
 def all_type(request):
-    types = ItemType.objects.values('type_name').distinct()
+    types = ItemType.objects.all()
     serializer = TypeSerializer(types, many=True)
     if types:
         return Response(serializer.data)
