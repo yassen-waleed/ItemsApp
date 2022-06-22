@@ -17,6 +17,19 @@ def all_item_has_type(request):
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
+def all_item_by_name(request):
+    name = request.GET.get('name')
+
+    items = Item.objects.all().filter(name=name).distinct()
+    serializer = ItemSerializer(items, many=True)
+
+    # if there is something in items else raise error
+    if items:
+        return Response(serializer.data)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['GET'])
 def all_item_by_location_and_type(request):
