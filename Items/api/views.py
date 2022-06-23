@@ -8,7 +8,8 @@ from .ItemSerializer import ItemSerializer, TypeSerializer
 
 @api_view(['GET'])
 def all_item_capisty(request):
-    type = request.GET.getlist('type')
+    type = request.query_params.get('type', None).split(',')
+
     location = request.GET.getlist('location')
     size = request.GET.get('size')
     print(type)
@@ -26,7 +27,7 @@ def all_item_capisty(request):
 
 @api_view(['GET'])
 def all_item_Most_rated(request):
-    type = request.GET.getlist('type')
+    type = request.query_params.get('type', None).split(',')
     location = request.GET.getlist('location')
     print(type)
     print(location)
@@ -42,7 +43,7 @@ def all_item_Most_rated(request):
 
 @api_view(['GET'])
 def all_item_by_price_DESC(request):
-    type = request.GET.getlist('type')
+    type = request.query_params.get('type', None).split(',')
     location = request.GET.getlist('location')
     print(type)
     print(location)
@@ -58,11 +59,11 @@ def all_item_by_price_DESC(request):
 
 @api_view(['GET'])
 def all_item_by_price_ASC(request):
-    type = request.GET.getlist('type')
+    type_ids = request.query_params.get('type', None).split(',')
     location = request.GET.getlist('location')
     print(type)
     print(location)
-    items = Item.objects.all().filter(location__in=location, types__in=type).distinct().order_by('price')
+    items = Item.objects.all().filter(location__in=location, types__in=type_ids).distinct().order_by('price')
     serializer = ItemSerializer(items, many=True)
 
     if items:
@@ -74,7 +75,8 @@ def all_item_by_price_ASC(request):
 @api_view(['GET'])
 def all_item_has_type(request):
     type_ids = request.query_params.get('id', None).split(',')
-    items = Item.objects.all().filter(types__in=type_ids).distinct()
+    location = request.GET.getlist('location')
+    items = Item.objects.all().filter(types__in=type_ids,location=location).distinct()
     serializer = ItemSerializer(items, many=True)
 
     # if there is something in items else raise error
@@ -116,6 +118,7 @@ def all_item_by_location_and_type(request):
 
 @api_view(['GET'])
 def all_type(request):
+
     types = ItemType.objects.all()
     serializer = TypeSerializer(types, many=True)
     if types:
