@@ -1,9 +1,16 @@
-from django.db.models import Q
+import re
+from urllib.request import urlopen
+import json
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from Items.models import Item, ItemType
-from .ItemSerializer import ItemSerializer, TypeSerializer
+from Items.models import Item, ItemType, resevedTable
+from .ItemSerializer import ItemSerializer, TypeSerializer, ReservedSerializer
+
 
 
 @api_view(['GET'])
@@ -73,17 +80,29 @@ def all_item_by_price_ASC(request):
 
 
 @api_view(['GET'])
+def returnAvalibleTime(request, pk):
+    date = request.GET.get('date')
+    reserved = resevedTable.objects.all().filter(item=pk, reserved_date=date)
+    serializer = ReservedSerializer(reserved, many=True)
+    
+    if reserved:
+        return Response(serializer.data)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
 def all_item_has_type(request):
     type_ids = request.query_params.get('id', None).split(',')
     location = request.GET.getlist('location')
-    items = Item.objects.all().filter(types__in=type_ids,location=location).distinct()
+    items = Item.objects.all().filter(types__in=type_ids, location__in=location).distinct()
     serializer = ItemSerializer(items, many=True)
 
     # if there is something in items else raise error
     if items:
         return Response(serializer.data)
     else:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.error_messages)
 
 
 @api_view(['GET'])
@@ -118,7 +137,6 @@ def all_item_by_location_and_type(request):
 
 @api_view(['GET'])
 def all_type(request):
-
     types = ItemType.objects.all()
     serializer = TypeSerializer(types, many=True)
     if types:
@@ -178,3 +196,74 @@ class ItemViewSet(viewsets.ModelViewSet):
 #         serializer = ItemSerializer(new_item)
 #
 #         return Response(serializer.data)
+
+
+def important_features(datasets):
+    data = datasets.copy()
+    for i in range(0, datasets.shape[0]):
+        data["imp"] = data["name"].apply(str) + " " + data["location"].apply(str) + " " + data["price"].apply(
+            str) + " " + data["rate"].apply(str) + " " + data["types"].apply(str)
+    return data
+
+
+
+
+
+
+@api_view(['GET'])
+def all_Recommended_Item(request):
+
+    itemstr = request.GET.get('itemstr')
+    print(itemstr)
+
+    data = Item.objects.all()
+    ser = ItemSerializer(data, many=True)
+    data = ser.data
+    pd.options.display.width = 0
+    dataf = pd.json_normalize(data, record_prefix='_')
+    dataf["types"] = [re.sub(r"[\([{})\]]", '', str(types)) for types in dataf.types]
+    dataf["types"] = [re.sub(r"""['"]+""", '', str(types)) for types in dataf.types]
+    dataf.drop("images", axis=1, inplace=True)
+    dataf.drop("amenities", axis=1, inplace=True)
+    dataf.drop("vendor_id", axis=1, inplace=True)
+    dataf.drop("about", axis=1, inplace=True)
+    dataf.drop("link", axis=1, inplace=True)
+
+    dataf.drop("phone", axis=1, inplace=True)
+    dataf.drop("address", axis=1, inplace=True)
+    dataf.drop("availability_date", axis=1, inplace=True)
+
+    dataf.shape
+
+    dataf.info()
+
+
+    data = important_features(dataf)
+    data["ids"] = [i for i in range(0, data.shape[0])]
+    vec = TfidfVectorizer()
+
+    vecs = vec.fit_transform(data["imp"].apply(lambda x: np.str_(x)))
+
+    vecs.shape
+
+    sim = cosine_similarity(vecs)
+
+    sim.shape
+
+    def recommend(imp):
+        venue_id = data[data.imp == imp]["ids"].values[0]
+        scores = list(enumerate(sim[venue_id]))
+        sorted_scores = sorted(scores, key=lambda x: x[1], reverse=True)
+        sorted_scores = sorted_scores[0:]
+        venues = [data[venues[0] == data["ids"]]["id"].values[0] for venues in sorted_scores]
+        return venues
+
+
+
+
+    lst = recommend(str)
+
+    return Response(lst)
+
+
+
