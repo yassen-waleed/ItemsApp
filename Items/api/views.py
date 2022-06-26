@@ -82,7 +82,7 @@ def all_item_by_price_ASC(request):
 @api_view(['GET'])
 def returnAvalibleTime(request, pk):
     date = request.GET.get('date')
-    reserved = resevedTable.objects.all().filter(item=pk, reserved_date=date)
+    reserved = resevedTable.objects.all().filter(item=pk, reserved_date=date).distinct()
     serializer = ReservedSerializer(reserved, many=True)
     
     if reserved:

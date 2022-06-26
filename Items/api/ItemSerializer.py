@@ -37,5 +37,5 @@ class ItemSerializer(serializers.ModelSerializer):
 class ReservedSerializer(serializers.ModelSerializer):
     class Meta:
         model = resevedTable
-        fields = ['id', 'reserved_date', 'time', 'item']
+        fields = ['time']
         
